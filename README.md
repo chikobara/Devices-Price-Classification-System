@@ -1,148 +1,114 @@
 # Devices Price Classification System
 
-This project implements a Devices Price Classification System using Python for machine learning and Spring Boot for the backend API. The system predicts the price range of mobile devices based on their specifications.
+This project implements a Devices Price Classification System using machine learning techniques such as Logistic Regression and SVM to predict the price range of devices based on their specifications. The project focuses solely on data exploration, preprocessing, and model training.
 
-## Project Structure
+# Table of Contents
 
-The project consists of two main components:
+- [Devices Price Classification System](#devices-price-classification-system)
+- [Table of Contents](#table-of-contents)
+- [Project Overview](#project-overview)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [Feature Engineering](#feature-engineering)
+- [Model Training](#model-training)
+- [Testing and Results](#testing-and-results)
 
-1. **Python Project**: Handles data preprocessing, exploratory data analysis (EDA), model training, and provides an API for price prediction.
-2. **Spring Boot Project**: Manages device data and interacts with the Python API for price predictions.
+# Project Overview
 
-## Python Project
+The Devices Price Classification System aims to predict the price category of a device using various features such as battery power, RAM, screen size, and camera specifications. The system predicts one of four price ranges:
 
-### Features
+- 0: Low cost
+- 1: Medium cost
+- 2: High cost
+- 3: Very high cost
 
-- Data preprocessing and cleaning
-- Exploratory Data Analysis (EDA) with visualizations
-- Model comparison and selection
-- Machine learning model training for price range prediction
-- Flask API for serving predictions
+This repository focuses on data cleaning, exploratory data analysis (EDA), feature engineering, and machine learning model training using Logistic Regression and Support Vector Machines (SVM).
 
-### Requirements
+# Project Structure
 
-- Python 3.7+
-- pandas
-- numpy
-- scikit-learn
-- xgboost
-- matplotlib
-- seaborn
-- flask
+```
+├── dataset
+│   ├── cleaned_train_data.csv          # Cleaned training data
+│   ├── test_data.csv                   # Test data for predictions
+│   └── train_data.csv                  # Raw training data
+├── EDA_Figures                         # Figures generated during EDA
+│   ├── battery_power_distribution.png  # Distribution of battery power
+│   ├── blue_distribution.png           # Bluetooth feature distribution
+│   ├── ...                             # Other EDA plots
+│   └── wifi_distribution.png           # WiFi feature distribution
+├── ml_modeling
+│   ├── cleaning_and_eda.ipynb          # Notebook for data cleaning and EDA
+│   ├── model.ipynb                     # Notebook for model training (Logistic Regression, SVM)
+│   └── svc_model.pkl                   # Saved SVM model
+├── .gitignore                          # Files and directories to ignore in version control
+├── LICENSE                             # License for the project
+├── README.md                           # Project documentation
+└── requirements.txt                    # Python dependencies
+```
 
-### Setup and Running
+# Setup Instructions
 
-1. Install the required packages:
+1. **Install Dependencies**: Make sure you have Python installed, then install the required dependencies using the following command:
 
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
 
-2. Place your training and test datasets (`train_data.csv` and `test_data.csv`) in the project directory.
+2. **Data Cleaning and EDA**: Run the `cleaning_and_eda.ipynb` notebook to perform data cleaning and exploratory data analysis:
 
-3. Run the Python script:
-
-   ```
-   python price_classification.py
+   ```bash
+   jupyter notebook ml_modeling/cleaning_and_eda.ipynb
    ```
 
-4. The Flask API will start running on `http://localhost:5000`.
+   This notebook will generate visualizations saved in the `EDA_Figures` directory.
 
-### API Endpoint
+3. **Model Training**: After cleaning the data, run the `model.ipynb` notebook to train the machine learning models:
 
-- **POST /predict**
-  - Accepts device specifications as JSON
-  - Returns predicted price range (0-3)
-
-Example request:
-
-```json
-{
-  "battery_power": 1000,
-  "blue": true,
-  "clock_speed": 1.2,
-  "dual_sim": false,
-  "fc": 8,
-  "four_g": true,
-  "int_memory": 32,
-  "m_dep": 0.6,
-  "mobile_wt": 150,
-  "n_cores": 4,
-  "pc": 12,
-  "px_height": 1280,
-  "px_width": 720,
-  "ram": 3000,
-  "sc_h": 12,
-  "sc_w": 7,
-  "talk_time": 20,
-  "three_g": true,
-  "touch_screen": true,
-  "wifi": true
-}
-```
-
-## Spring Boot Project
-
-### Features
-
-- RESTful API for managing device data
-- Integration with Python API for price predictions
-- Data persistence using JPA
-
-### Requirements
-
-- Java 11+
-- Maven
-- Spring Boot 2.5+
-
-### Setup and Running
-
-1. Navigate to the Spring Boot project directory.
-
-2. Build the project:
-
-   ```
-   mvn clean install
+   ```bash
+   jupyter notebook ml_modeling/model.ipynb
    ```
 
-3. Run the application:
+   This will train Logistic Regression and SVM models and save the best model (`svc_model.pkl`).
 
+# Feature Engineering
+
+Several feature engineering techniques were applied to enhance the dataset:
+
+- **Screen Area**: Calculated as the product of `sc_h` (screen height) and `sc_w` (screen width).
+- **Pixel Density**: Calculated as the ratio of pixel area (`px_height * px_width`) to screen area.
+- **Camera Megapixels Ratio**: Ratio of the front camera (`fc`) to primary camera (`pc`).
+- **Log Transformations**: Applied to RAM, `battery_power`, and `internal_memory` to reduce skewness.
+- **Binning**: Battery power, RAM, and internal memory were binned using quantiles.
+
+# Model Training
+
+Two machine learning models were used for the classification task:
+
+1. **Logistic Regression**: This linear model is trained to classify devices into price ranges based on features.
+
+   ```python
+   from sklearn.linear_model import LogisticRegression
+   model = LogisticRegression(max_iter=1000)
+   model.fit(X_train_scaled, y_train)
    ```
-   java -jar target/device-api-0.0.1-SNAPSHOT.jar
+
+2. **Support Vector Machine (SVM)**: A non-linear model using the RBF kernel for more complex decision boundaries.
+
+   ```python
+   from sklearn.svm import SVC
+   model = SVC(kernel='rbf', C=1, gamma='scale')
+   model.fit(X_train_scaled, y_train)
    ```
 
-4. The Spring Boot API will start running on `http://localhost:8080`.
+The SVM model performed slightly better and was saved as `svc_model.pkl`.
 
-### API Endpoints
+# Testing and Results
 
-- **GET /api/devices**: Retrieve all devices
-- **GET /api/devices/{id}**: Retrieve a specific device by ID
-- **POST /api/devices**: Add a new device
-- **POST /api/predict/{deviceId}**: Predict price range for a device
+Testing was conducted using the cleaned test dataset (`test_data.csv`). Key results from the model evaluation include:
 
-## Model Selection and Evaluation
+- **Accuracy**:
+  - Logistic Regression: 85%
+  - SVM with RBF Kernel: 87%
+- **Confusion Matrix**: Generated for both models to evaluate the classification performance. You can refer to the figures and charts generated during the testing phase in the `model.ipynb` notebook.
 
-We compared several machine learning models for this classification task:
-
-1. Logistic Regression
-2. Random Forest
-3. Support Vector Machine (SVM) with RBF kernel
-4. XGBoost
-5. Neural Network
-
-After evaluation, XGBoost was selected as the best-performing model based on cross-validation accuracy.
-
-## Future Improvements
-
-- Implement hyperparameter tuning for the selected model
-- Add more advanced feature engineering techniques
-- Develop a user interface for easier interaction with the system
-- Implement user authentication and authorization for the APIs
-
-## Contributors
-
-- Chikobara
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+You can visualize the results of feature importance, confusion matrices, and accuracy plots by referring to the `model.ipynb` notebook.
